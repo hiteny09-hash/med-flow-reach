@@ -11,6 +11,7 @@ import { MedicineForm } from "@/components/MedicineForm";
 import { MedicineCard } from "@/components/MedicineCard";
 import { AdherenceHistory } from "@/components/AdherenceHistory";
 import { AdherenceAnalytics } from "@/components/AdherenceAnalytics";
+import { AlarmModal } from "@/components/AlarmModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Pill, Bell, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -51,7 +52,7 @@ const Index = () => {
 
   useEffect(() => { if (user) { loadMeds(); loadProfile(); } }, [user]);
 
-  useReminderScheduler(meds, user?.id);
+  const { activeAlarm, dismissAlarm } = useReminderScheduler(meds, user?.id);
 
   useEffect(() => {
     const id = setInterval(() => setRefreshKey((k) => k + 1), 60_000);
@@ -95,6 +96,8 @@ const Index = () => {
   if (!user) return <Navigate to="/auth" replace />;
 
   return (
+    <>
+    <AlarmModal alarm={activeAlarm} onClose={dismissAlarm} />
     <div className="min-h-screen gradient-soft">
       <header className="border-b bg-background/70 backdrop-blur sticky top-0 z-10">
         <div className="container max-w-4xl flex items-center justify-between h-16">
@@ -209,6 +212,7 @@ const Index = () => {
         </Tabs>
       </main>
     </div>
+    </>
   );
 };
 

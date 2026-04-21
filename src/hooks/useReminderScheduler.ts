@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { ActiveAlarm } from "@/components/AlarmModal";
 
 interface Medicine {
   id: string;
@@ -19,7 +20,8 @@ interface Medicine {
  * 3. Calls the publish-reminder edge function (HiveMQ MQTT)
  */
 export function useReminderScheduler(medicines: Medicine[], userId: string | undefined) {
-  const fired = useRef<Set<string>>(new Set()); // key: `${id}|${HH:MM}|${YYYY-MM-DD}`
+  const fired = useRef<Set<string>>(new Set());
+  const [activeAlarm, setActiveAlarm] = useState<ActiveAlarm | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -40,7 +42,15 @@ export function useReminderScheduler(medicines: Medicine[], userId: string | und
           const key = `${med.id}|${t}|${day}`;
           if (t === current && !fired.current.has(key)) {
             fired.current.add(key);
-            await fireReminder(med, t, userId);
+            const logId = await fireReminder(med, t, userId);
+            if (logId) {
+              setActiveAlarm({
+                logId,
+                medicineName: med.name,
+                dosage: med.dosage,
+                scheduledTime: t,
+              });
+            }
           }
         }
       }
@@ -50,13 +60,15 @@ export function useReminderScheduler(medicines: Medicine[], userId: string | und
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
   }, [medicines, userId]);
+
+  return { activeAlarm, dismissAlarm: () => setActiveAlarm(null) };
 }
 
 async function fireReminder(
   med: { id: string; name: string; dosage: string; notes: string | null },
   scheduled_time: string,
   userId: string,
-) {
+): Promise<string | null> {
   // Browser notification
   if ("Notification" in window && Notification.permission === "granted") {
     try {
@@ -94,4 +106,6 @@ async function fireReminder(
   } catch (e) {
     console.error("MQTT invoke error:", e);
   }
+
+  return log?.id ?? null;
 }
