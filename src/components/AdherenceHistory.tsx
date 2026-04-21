@@ -12,7 +12,7 @@ interface Row {
   medicine_id: string;
   scheduled_time: string;
   fired_at: string;
-  status: "fired" | "taken" | "skipped";
+  status: "fired" | "taken" | "skipped" | "missed";
   mqtt_published: boolean;
   medicines: { name: string; dosage: string } | null;
 }
@@ -73,8 +73,8 @@ export const AdherenceHistory = ({ refreshKey }: { refreshKey: number }) => {
               </Button>
             </div>
           ) : (
-            <Badge variant={r.status === "taken" ? "default" : "secondary"}>
-              {r.status === "taken" ? "✓ Taken" : "Skipped"}
+            <Badge variant={r.status === "taken" ? "default" : r.status === "missed" ? "destructive" : "secondary"}>
+              {r.status === "taken" ? "✓ Taken" : r.status === "missed" ? "⚠ Missed" : "Skipped"}
             </Badge>
           )}
         </Card>

@@ -11,7 +11,7 @@ import { MedicineForm } from "@/components/MedicineForm";
 import { MedicineCard } from "@/components/MedicineCard";
 import { AdherenceHistory } from "@/components/AdherenceHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Pill, Bell } from "lucide-react";
+import { LogOut, Pill, Bell, Send } from "lucide-react";
 import { toast } from "sonner";
 
 interface Medicine {
@@ -25,6 +25,9 @@ const Index = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [caregiverEmail, setCaregiverEmail] = useState("");
+  const [caregiverChatId, setCaregiverChatId] = useState("");
+  const [missedMinutes, setMissedMinutes] = useState(30);
+  const [testing, setTesting] = useState(false);
 
   const loadMeds = async () => {
     const { data } = await supabase.from("medicines").select("*").order("created_at", { ascending: false });
@@ -33,10 +36,15 @@ const Index = () => {
 
   const loadProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("display_name, caregiver_email").eq("user_id", user.id).maybeSingle();
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, caregiver_email, caregiver_telegram_chat_id, missed_alert_minutes")
+      .eq("user_id", user.id).maybeSingle();
     if (data) {
       setDisplayName(data.display_name ?? "");
       setCaregiverEmail(data.caregiver_email ?? "");
+      setCaregiverChatId(data.caregiver_telegram_chat_id ?? "");
+      setMissedMinutes(data.missed_alert_minutes ?? 30);
     }
   };
 
@@ -44,7 +52,6 @@ const Index = () => {
 
   useReminderScheduler(meds, user?.id);
 
-  // Refresh history every minute (cheap) so MQTT badge appears
   useEffect(() => {
     const id = setInterval(() => setRefreshKey((k) => k + 1), 60_000);
     return () => clearInterval(id);
@@ -55,9 +62,25 @@ const Index = () => {
     const { error } = await supabase.from("profiles").update({
       display_name: displayName || null,
       caregiver_email: caregiverEmail || null,
+      caregiver_telegram_chat_id: caregiverChatId || null,
+      missed_alert_minutes: missedMinutes,
     }).eq("user_id", user.id);
     if (error) return toast.error(error.message);
     toast.success("Profile saved");
+  };
+
+  const testTelegram = async () => {
+    if (!caregiverChatId) return toast.error("Enter a Telegram chat ID first");
+    setTesting(true);
+    const { data, error } = await supabase.functions.invoke("test-caregiver-telegram", {
+      body: { chat_id: caregiverChatId },
+    });
+    setTesting(false);
+    if (error || !data?.ok) {
+      toast.error(`Test failed: ${data?.error ?? error?.message ?? "unknown"}`);
+    } else {
+      toast.success("Test message sent! Check Telegram.");
+    }
   };
 
   const enableNotifs = async () => {
@@ -131,7 +154,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="profile">
-            <Card className="p-6 max-w-md shadow-card space-y-4">
+            <Card className="p-6 max-w-xl shadow-card space-y-5">
               <div className="space-y-2">
                 <Label>Display name</Label>
                 <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
@@ -139,8 +162,40 @@ const Index = () => {
               <div className="space-y-2">
                 <Label>Caregiver email (optional)</Label>
                 <Input type="email" value={caregiverEmail} onChange={(e) => setCaregiverEmail(e.target.value)} placeholder="caregiver@example.com" />
-                <p className="text-xs text-muted-foreground">For future caregiver notifications.</p>
               </div>
+
+              <div className="border-t pt-5 space-y-4">
+                <div>
+                  <h4 className="font-semibold flex items-center gap-2"><Send className="w-4 h-4" /> Caregiver Telegram alerts</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Get a Telegram message when a dose is missed. Ask your caregiver to:
+                  </p>
+                  <ol className="text-xs text-muted-foreground mt-2 space-y-1 list-decimal list-inside">
+                    <li>Open Telegram and search for your bot, then press <em>Start</em>.</li>
+                    <li>Message <code className="bg-muted px-1 rounded">@userinfobot</code> to get their numeric chat ID.</li>
+                    <li>Paste that ID below.</li>
+                  </ol>
+                </div>
+                <div className="space-y-2">
+                  <Label>Caregiver Telegram chat ID</Label>
+                  <div className="flex gap-2">
+                    <Input value={caregiverChatId} onChange={(e) => setCaregiverChatId(e.target.value)} placeholder="e.g. 123456789" />
+                    <Button type="button" variant="outline" onClick={testTelegram} disabled={testing || !caregiverChatId}>
+                      {testing ? "Sending…" : "Test"}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Alert after dose is missed for (minutes)</Label>
+                  <Input
+                    type="number" min={5} max={240}
+                    value={missedMinutes}
+                    onChange={(e) => setMissedMinutes(parseInt(e.target.value || "30", 10))}
+                  />
+                  <p className="text-xs text-muted-foreground">If the dose isn't marked taken within this window, the caregiver gets a Telegram alert.</p>
+                </div>
+              </div>
+
               <Button onClick={saveProfile}>Save changes</Button>
             </Card>
           </TabsContent>

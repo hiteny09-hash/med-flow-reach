@@ -19,6 +19,7 @@ export type Database = {
           fired_at: string
           id: string
           medicine_id: string
+          missed_alert_sent: boolean
           mqtt_published: boolean
           scheduled_time: string
           status: string
@@ -28,6 +29,7 @@ export type Database = {
           fired_at?: string
           id?: string
           medicine_id: string
+          missed_alert_sent?: boolean
           mqtt_published?: boolean
           scheduled_time: string
           status?: string
@@ -37,6 +39,7 @@ export type Database = {
           fired_at?: string
           id?: string
           medicine_id?: string
+          missed_alert_sent?: boolean
           mqtt_published?: boolean
           scheduled_time?: string
           status?: string
@@ -91,25 +94,31 @@ export type Database = {
       profiles: {
         Row: {
           caregiver_email: string | null
+          caregiver_telegram_chat_id: string | null
           created_at: string
           display_name: string | null
           id: string
+          missed_alert_minutes: number
           updated_at: string
           user_id: string
         }
         Insert: {
           caregiver_email?: string | null
+          caregiver_telegram_chat_id?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          missed_alert_minutes?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           caregiver_email?: string | null
+          caregiver_telegram_chat_id?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          missed_alert_minutes?: number
           updated_at?: string
           user_id?: string
         }
