@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { MedicineForm } from "@/components/MedicineForm";
 import { MedicineCard } from "@/components/MedicineCard";
 import { AdherenceHistory } from "@/components/AdherenceHistory";
+import { AdherenceAnalytics } from "@/components/AdherenceAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Pill, Bell, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -127,6 +128,7 @@ const Index = () => {
         <Tabs defaultValue="meds">
           <TabsList className="mb-6">
             <TabsTrigger value="meds">Medicines</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
           </TabsList>
@@ -146,6 +148,11 @@ const Index = () => {
                 {meds.map((m) => <MedicineCard key={m.id} medicine={m} onChange={loadMeds} />)}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <h3 className="text-lg font-semibold mb-4">Weekly adherence</h3>
+            <AdherenceAnalytics refreshKey={refreshKey} />
           </TabsContent>
 
           <TabsContent value="history">
