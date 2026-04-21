@@ -212,6 +212,7 @@ const Index = () => {
         </Tabs>
       </main>
     </div>
+    </>
   );
 };
 
