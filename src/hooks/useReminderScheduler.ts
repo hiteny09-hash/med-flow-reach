@@ -10,6 +10,7 @@ interface Medicine {
   notes: string | null;
   times: string[];
   active: boolean;
+  box_number?: number;
 }
 
 /**
