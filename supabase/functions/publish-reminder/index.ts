@@ -14,6 +14,7 @@ interface ReminderPayload {
   dosage: string;
   scheduled_time: string; // HH:MM
   notes?: string | null;
+  box_number?: number; // 1, 2, or 3
 }
 
 Deno.serve(async (req) => {
