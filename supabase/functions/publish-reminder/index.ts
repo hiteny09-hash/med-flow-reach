@@ -71,10 +71,16 @@ Deno.serve(async (req) => {
     // HiveMQ Cloud: secure WebSocket on port 8884, path /mqtt
     const url = `wss://${HOST}:8884/mqtt`;
     const box = body.box_number && [1, 2, 3].includes(body.box_number) ? body.box_number : 1;
-    // Per-box topic so the IoT device can subscribe to a specific compartment
-    const topic = `medireminder/${userId}/box/${box}`;
+    // ESP32 subscribes to "medreminder/alarm" with payload {"compartment": 0|1|2}
+    // (compartment is 0-indexed on the device; box is 1-indexed in the app)
+    const topic = `medreminder/alarm`;
     const message = JSON.stringify({
-      ...body,
+      compartment: box - 1,
+      medicine_id: body.medicine_id,
+      medicine_name: body.medicine_name,
+      dosage: body.dosage,
+      scheduled_time: body.scheduled_time,
+      notes: body.notes ?? null,
       box_number: box,
       user_id: userId,
       fired_at: new Date().toISOString(),
