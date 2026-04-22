@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Pill, Trash2 } from "lucide-react";
+import { Clock, Pill, Trash2, Box } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ interface Props {
     notes: string | null;
     times: string[];
     active: boolean;
+    box_number?: number;
   };
   onChange: () => void;
 }
@@ -25,6 +26,8 @@ export const MedicineCard = ({ medicine, onChange }: Props) => {
     toast.success("Medicine deleted");
     onChange();
   };
+
+  const box = medicine.box_number ?? 1;
 
   return (
     <Card className="p-5 shadow-card hover:shadow-glow transition-shadow">
@@ -44,6 +47,9 @@ export const MedicineCard = ({ medicine, onChange }: Props) => {
         </Button>
       </div>
       <div className="flex flex-wrap gap-2 mt-4">
+        <Badge className="gap-1 bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20">
+          <Box className="w-3 h-3" /> Box {box}
+        </Badge>
         {medicine.times.map((t) => (
           <Badge key={t} variant="secondary" className="gap-1 font-mono">
             <Clock className="w-3 h-3" /> {t}

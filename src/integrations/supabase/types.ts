@@ -58,6 +58,7 @@ export type Database = {
       medicines: {
         Row: {
           active: boolean
+          box_number: number
           created_at: string
           dosage: string
           id: string
@@ -69,6 +70,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          box_number?: number
           created_at?: string
           dosage: string
           id?: string
@@ -80,6 +82,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          box_number?: number
           created_at?: string
           dosage?: string
           id?: string

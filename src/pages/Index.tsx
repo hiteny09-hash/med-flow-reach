@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 interface Medicine {
   id: string; name: string; dosage: string; notes: string | null;
-  times: string[]; active: boolean;
+  times: string[]; active: boolean; box_number: number;
 }
 
 const Index = () => {

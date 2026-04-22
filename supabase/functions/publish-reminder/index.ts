@@ -14,6 +14,7 @@ interface ReminderPayload {
   dosage: string;
   scheduled_time: string; // HH:MM
   notes?: string | null;
+  box_number?: number; // 1, 2, or 3
 }
 
 Deno.serve(async (req) => {
@@ -71,9 +72,12 @@ Deno.serve(async (req) => {
 
     // HiveMQ Cloud: secure WebSocket on port 8884, path /mqtt
     const url = `wss://${HOST}:8884/mqtt`;
-    const topic = `medireminder/${userId}/reminders`;
+    const box = body.box_number && [1, 2, 3].includes(body.box_number) ? body.box_number : 1;
+    // Per-box topic so the IoT device can subscribe to a specific compartment
+    const topic = `medireminder/${userId}/box/${box}`;
     const message = JSON.stringify({
       ...body,
+      box_number: box,
       user_id: userId,
       fired_at: new Date().toISOString(),
     });

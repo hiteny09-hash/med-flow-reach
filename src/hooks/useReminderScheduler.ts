@@ -10,6 +10,7 @@ interface Medicine {
   notes: string | null;
   times: string[];
   active: boolean;
+  box_number?: number;
 }
 
 /**
@@ -65,20 +66,21 @@ export function useReminderScheduler(medicines: Medicine[], userId: string | und
 }
 
 async function fireReminder(
-  med: { id: string; name: string; dosage: string; notes: string | null },
+  med: { id: string; name: string; dosage: string; notes: string | null; box_number?: number },
   scheduled_time: string,
   userId: string,
 ): Promise<string | null> {
+  const box = med.box_number ?? 1;
   // Browser notification
   if ("Notification" in window && Notification.permission === "granted") {
     try {
-      new Notification(`Time for ${med.name}`, {
+      new Notification(`Time for ${med.name} (Box ${box})`, {
         body: `${med.dosage}${med.notes ? ` — ${med.notes}` : ""}`,
         tag: `med-${med.id}-${scheduled_time}`,
       });
     } catch (_) {/* noop */}
   }
-  toast(`💊 Time for ${med.name}`, { description: `${med.dosage} (${scheduled_time})` });
+  toast(`💊 Time for ${med.name}`, { description: `Box ${box} • ${med.dosage} (${scheduled_time})` });
 
   // Log
   const { data: log } = await supabase
@@ -96,6 +98,7 @@ async function fireReminder(
         dosage: med.dosage,
         scheduled_time,
         notes: med.notes,
+        box_number: box,
       },
     });
     if (!error && log) {
