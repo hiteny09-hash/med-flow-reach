@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Box } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -16,16 +16,17 @@ export const MedicineForm = ({ onCreated }: { onCreated: () => void }) => {
   const [dosage, setDosage] = useState("");
   const [notes, setNotes] = useState("");
   const [times, setTimes] = useState<string[]>(["08:00"]);
+  const [boxNumber, setBoxNumber] = useState<1 | 2 | 3>(1);
   const [saving, setSaving] = useState(false);
 
-  const reset = () => { setName(""); setDosage(""); setNotes(""); setTimes(["08:00"]); };
+  const reset = () => { setName(""); setDosage(""); setNotes(""); setTimes(["08:00"]); setBoxNumber(1); };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
     const { error } = await supabase.from("medicines").insert({
-      user_id: user.id, name, dosage, notes: notes || null, times,
+      user_id: user.id, name, dosage, notes: notes || null, times, box_number: boxNumber,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
