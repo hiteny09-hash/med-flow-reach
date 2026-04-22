@@ -51,6 +51,24 @@ export const MedicineForm = ({ onCreated }: { onCreated: () => void }) => {
             <Input required value={dosage} onChange={(e) => setDosage(e.target.value)} placeholder="e.g. 500mg, 1 tablet" />
           </div>
           <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Box className="w-4 h-4" /> Pill box</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {[1, 2, 3].map((n) => (
+                <Button
+                  key={n}
+                  type="button"
+                  variant={boxNumber === n ? "default" : "outline"}
+                  onClick={() => setBoxNumber(n as 1 | 2 | 3)}
+                  className="h-12 flex flex-col gap-0.5"
+                >
+                  <span className="text-xs opacity-70">Box</span>
+                  <span className="font-bold">{n}</span>
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">The IoT device will light up this box at reminder time.</p>
+          </div>
+          <div className="space-y-2">
             <Label>Reminder times</Label>
             <div className="space-y-2">
               {times.map((t, i) => (
